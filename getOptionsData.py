@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 import os
@@ -63,26 +62,7 @@ def getmultisite(companies,date,headers,exchange,multilist):
     for i in range(1,multiValue):
         newpage = requests.get('http://www.nasdaq.com/symbol/%s/option-chain?dateindex=-1&page=%i' % (company,i))
         thepage = newpage.text
-        soup = BeautifulSoup(thepage, "html.parser")
-        try:
-            nextbutton = soup.find(id="quotes_content_left_lb_NextPage")
-            nextlink = nextbutton.get('href')
-        except AttributeError:
-            print ('value: %i not found.' %i)
-        if nextlink is not None:
-            newpage = requests.get(nextlink)
-        table = soup.find('div', attrs={'class':'OptionsChain-chart borderAll thin'})
-        try:
-            rows = table.find_all('tr')
-            for row in rows:
-                cols = row.find_all('td')
-                cols = [ele.text.strip() for ele in cols if not ele.has_attr("colspan")]
-                data.append([ele for ele in cols])
-            data = [x for x in data if len(x) > 2]
-        except AttributeError:
-            print ("err0r")
-        alldata.append(data)
-    return data
+    return 0
 
 def getoptionsdata(startingPoint,companies,date,headers,exchange,multilist):
     print ('starting get options data for ',exchange)
@@ -127,28 +107,7 @@ def getoptionsdata(startingPoint,companies,date,headers,exchange,multilist):
             print ('Could not download. '+tickerSymbol+' Will retry in 5 seconds...')
             time.sleep(5)
             continue
-        try:
-            page.raise_for_status()
-            thepage = page.text
-            soup = BeautifulSoup(thepage, "html.parser")
-            data = []
-            table = soup.find('div', attrs={'class':'OptionsChain-chart borderAll thin'})
-            rows = table.find_all('tr')
-            for row in rows:
-                cols = row.find_all('td')
-                cols = [ele.text.strip() for ele in cols if not ele.has_attr("colspan")]
-                data.append([ele for ele in cols])
-            data = [x for x in data if len(x) > 2]
-            successes+=1
-            if multi != 1:
-                if len(data)==0:
-                    pass
-                else:
-                    OptionsMegaFile = OptionsMegaFile.append(data)
-        except AttributeError:
-            companiesNotFound = "Not Found %s" % tickerSymbol, page.url
-            print (companiesNotFound)
-            errors.append(companiesNotFound)
+
         if i>=currentIteration:
             iterationFileName = 'OptionsMega%s%i %s.csv'%(exchange,i,today)
             OptionsMegaFile.to_csv(iterationFileName,sep=",",encoding="utf8",header=None,index=False)
